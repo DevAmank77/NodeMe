@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "675445548984",
+    "project_id": "nodeme-165a5",
+    "storage_bucket": "nodeme-165a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675445548984:android:2d767c239e995b0edb914d",
+        "android_client_info": {
+          "package_name": "com.amank77.node_me"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKrKxWm1fBhfEtNSSBfGlY4NA_6u7-ozQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
