@@ -3,12 +3,14 @@ import 'package:node_me/utils/app_color.dart';
 
 class TextFieldWidget extends StatefulWidget {
   final TextEditingController controller;
-  final String LabelText;
+  final String labelText;
+  final TextInputType keyboardType;
 
   const TextFieldWidget({
     super.key,
     required this.controller,
-    required this.LabelText,
+    required this.labelText,
+    this.keyboardType = TextInputType.text,
   });
 
   @override
@@ -62,18 +64,22 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
           child: TextField(
             focusNode: focusNode,
             controller: widget.controller,
+            keyboardType: widget.keyboardType,
             maxLines: 1,
             decoration: InputDecoration(
               fillColor: Colors.white,
               filled: true,
-              labelText: widget.LabelText,
+              labelText: widget.labelText,
               labelStyle: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 18,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: Colors.grey, width: 1),
+                borderSide: const BorderSide(
+                  color: AppColors.graphLine,
+                  width: 1,
+                ),
               ),
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(color: AppColors.primary, width: 1),

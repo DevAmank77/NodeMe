@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/screens/otp_verification_scree.dart';
+import 'package:node_me/utils/app_color.dart';
 import 'package:node_me/widgets/auth_button.dart';
 import 'package:node_me/widgets/text_field.dart';
 
@@ -12,39 +14,84 @@ class EnterPhoneNumber extends StatefulWidget {
 
 class _EnterPhoneNumberState extends State<EnterPhoneNumber> {
   final TextEditingController phoneController = TextEditingController();
+  bool isLoading = false;
+
+  Future<void> verifyPhoneNumber() async {
+    final phone = phoneController.text.trim();
+    if (phone.isEmpty || phone.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Please enter a valid phone number",
+            style: TextStyle(color: AppColors.error),
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: '+91$phone', // Change country code as needed
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Auto-retrieval or instant verification (mostly on Android)
+        await FirebaseAuth.instance.signInWithCredential(credential);
+        // Navigate to home or profile setup
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Verification failed: ${e.message}",
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        );
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() => isLoading = false);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtpVerificationScree(
+              verificationId: verificationId,
+              phoneNumber: phone,
+            ),
+          ),
+        );
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        // Called when auto-retrieval times out
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Center(child: Text("Enter Phone Number"))),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Enter your phone number',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
               TextFieldWidget(
                 controller: phoneController,
-                LabelText: 'phone number',
+                keyboardType: TextInputType.number,
+                labelText: 'Phone Number',
               ),
               const SizedBox(height: 20),
-
-              CustomSimpleRoundedButton(
-                onPressed: () {
-                  // Navigate to OTP verification screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OtpVerificationScree(),
+              isLoading
+                  ? CircularProgressIndicator()
+                  : CustomSimpleRoundedButton(
+                      onPressed: verifyPhoneNumber,
+                      text: 'Send OTP',
                     ),
-                  );
-                },
-                text: 'Enter OTP',
-              ),
             ],
           ),
         ),

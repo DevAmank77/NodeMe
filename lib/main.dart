@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/firebase_options.dart';
 import 'package:node_me/screens/enter_phone_number.dart';
+import 'package:node_me/screens/enter_profile_details_screen.dart';
+import 'package:node_me/screens/home_screen.dart';
 import 'package:node_me/utils/theme.dart';
 
 void main() async {
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
-      home: EnterPhoneNumber(),
+      home: EnterProfileScreen(uid: '11'),
     );
   }
 }
