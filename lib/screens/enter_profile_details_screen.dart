@@ -1,10 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:node_me/screens/home_screen.dart';
+import 'package:node_me/widgets/auth_button.dart';
 import '../models/user_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EnterProfileScreen extends StatefulWidget {
-  final String uid; // comes from Firebase Auth
-
-  const EnterProfileScreen({super.key, required this.uid});
+  const EnterProfileScreen({super.key});
 
   @override
   State<EnterProfileScreen> createState() => _EnterProfileScreenState();
@@ -12,11 +14,11 @@ class EnterProfileScreen extends StatefulWidget {
 
 class _EnterProfileScreenState extends State<EnterProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-
+  late final String uid;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController profilePicController = TextEditingController();
+  final TextEditingController interestController = TextEditingController();
 
   bool isLoading = false;
 
@@ -27,23 +29,32 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
       isLoading = true;
     });
 
-    final user = UserModel(
-      uid: widget.uid,
-      name: nameController.text.trim(),
-      username: usernameController.text.trim(),
-      bio: bioController.text.trim(),
-      profilePicUrl: profilePicController.text.trim(),
-      interests: [],
-    );
+    if (_formKey.currentState!.validate()) {
+      setState(() => isLoading = true);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'name': nameController.text,
+          'username': usernameController.text,
 
-    // Save to Firebase or DB here
-    // await FirebaseFirestore.instance.collection('users').doc(widget.uid).set(user.toJson());
+          'interests': interestController.text
+              .split(',')
+              .map((e) => e.trim())
+              .toList(),
+          'bio': bioController.text,
+        });
+      }
+    }
 
     setState(() {
       isLoading = false;
     });
 
-    Navigator.pushReplacementNamed(context, '/home'); // change as needed
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomeScreen()),
+    );
   }
 
   @override
@@ -59,12 +70,8 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
               const SizedBox(height: 20),
               CircleAvatar(
                 radius: 50,
-                backgroundImage: profilePicController.text.isNotEmpty
-                    ? NetworkImage(profilePicController.text)
-                    : null,
-                child: profilePicController.text.isEmpty
-                    ? const Icon(Icons.person, size: 50)
-                    : null,
+
+                child: const Icon(Icons.person, size: 50),
               ),
               const SizedBox(height: 12),
 
@@ -89,7 +96,7 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: profilePicController,
+                controller: interestController,
                 decoration: const InputDecoration(
                   labelText: "Hobbies(seperated by commas)",
                   border: OutlineInputBorder(),
@@ -111,11 +118,9 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
                     value!.isEmpty ? "Bio cannot be empty" : null,
               ),
               const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: isLoading ? null : saveProfile,
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Save Profile"),
+              CustomSimpleRoundedButton(
+                onPressed: isLoading ? () {} : saveProfile,
+                text: isLoading ? "Saving..." : "Save Profile",
               ),
             ],
           ),

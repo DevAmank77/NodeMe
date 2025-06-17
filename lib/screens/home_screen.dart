@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:node_me/models/user_model.dart';
-import 'package:node_me/widgets/user_profile.dart';
 import 'package:node_me/utils/app_color.dart';
+import 'package:node_me/widgets/user_profile.dart';
+import '../models/user_model.dart';
+import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,28 +15,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Future<UserModel?> futureUser;
+
+  @override
+  void initState() {
+    super.initState();
+    futureUser = fetchUser();
+  }
+
+  Future<UserModel?> fetchUser() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    if (snapshot.exists) {
+      return UserModel.fromJson(snapshot.data()!);
+    }
+    return null;
+  }
+
+  void refreshUser() {
+    setState(() {
+      futureUser = fetchUser();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    UserModel testUser = UserModel(
-      uid: '123abc',
-      name: 'Aman Kumar',
-      username: 'amank77',
-      bio: 'Flutter developer | Designer | Coffee lover ☕️',
-
-      friends: 42,
-      interests: [],
-    );
-
     return Scaffold(
       appBar: AppBar(
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Node Me',
-            style: TextStyle(
-              fontFamily: GoogleFonts.satisfy().fontFamily,
-              fontSize: 24,
-            ),
+        elevation: 4,
+        shadowColor: AppColors.graphLine,
+
+        title: Text(
+          'Node Me',
+          style: TextStyle(
+            fontFamily: GoogleFonts.satisfy().fontFamily,
+            fontSize: 24,
           ),
         ),
         actions: [
@@ -41,38 +60,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
           IconButton(icon: const Icon(Icons.add_box), onPressed: () {}),
         ],
-        centerTitle: true,
-        backgroundColor: AppColors.primary,
-        elevation: 0,
       ),
+      body: FutureBuilder<UserModel?>(
+        future: futureUser,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
 
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            UserProfileCard(
-              user: testUser,
-              onEdit: () {
-                print("Accepted or Edit pressed!");
-              },
-            ),
+          final user = snapshot.data!;
+          return UserProfileCard(
+            user: user,
+            onEdit: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(user: user),
+                ),
+              );
 
-            Text(
-              'Welcome to Node Me',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Add your button action here
-              },
-              child: const Text('Get Started'),
-            ),
-          ],
-        ),
+              if (result == true) {
+                refreshUser(); // Rebuild with updated data
+              }
+            },
+          );
+        },
       ),
     );
   }

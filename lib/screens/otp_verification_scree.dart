@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:node_me/screens/enter_profile_details_screen.dart';
 import 'package:node_me/screens/home_screen.dart';
 import 'package:node_me/utils/app_color.dart';
 import 'package:node_me/widgets/auth_button.dart';
@@ -49,12 +51,21 @@ class _OtpVerificationScreeState extends State<OtpVerificationScree> {
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
-
-      // ✅ Navigate to Profile Setup or Home screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+      if (await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get()
+          .then((doc) => doc.exists)) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => EnterProfileScreen()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

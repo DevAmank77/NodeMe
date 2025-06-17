@@ -14,7 +14,7 @@ class UserModel {
     required this.name,
     required this.username,
     required this.bio,
-    this.profilePicUrl = 'https://i.pravatar.cc/300',
+    required this.profilePicUrl,
     this.friends = 0,
     required this.interests,
   });
@@ -27,7 +27,7 @@ class UserModel {
       bio: json['bio'] ?? '',
       profilePicUrl: json['profilePicUrl'] ?? '',
       friends: json['friends'] ?? 0,
-      interests: [],
+      interests: List<String>.from(json['interests'] ?? []),
     );
   }
 

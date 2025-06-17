@@ -13,6 +13,7 @@ class AppColors {
   // Backgrounds and Surfaces
   static const Color background = Color(0xFFF7F9FC);
   static const Color card = Color(0xFFFFFFFF);
+  static const Color secondaryCard = Color.fromARGB(255, 240, 240, 240);
 
   // Text Colors
   static const Color textPrimary = Color(0xFF1A1A1A);
