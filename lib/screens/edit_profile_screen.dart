@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:node_me/widgets/auth_button.dart';
+import 'package:node_me/widgets/custom_button.dart';
 import 'package:node_me/widgets/image_upload.dart';
 import '../models/user_model.dart';
 import '../utils/app_color.dart';

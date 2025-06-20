@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:node_me/utils/app_color.dart';
-import 'package:node_me/widgets/auth_button.dart';
+import 'package:node_me/widgets/custom_button.dart';
 import '../models/user_model.dart';
 
 class UserProfileCard extends StatelessWidget {

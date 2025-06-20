@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:node_me/screens/enter_profile_details_screen.dart';
 import 'package:node_me/screens/home_screen.dart';
 import 'package:node_me/utils/app_color.dart';
-import 'package:node_me/widgets/auth_button.dart';
+import 'package:node_me/widgets/custom_button.dart';
 import 'package:node_me/widgets/text_field.dart';
 
 class OtpVerificationScree extends StatefulWidget {

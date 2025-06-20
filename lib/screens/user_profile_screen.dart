@@ -9,14 +9,40 @@ import 'package:node_me/widgets/user_profile.dart';
 import '../models/user_model.dart';
 import 'edit_profile_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  late Future<UserModel?> futureUser;
+
+  @override
+  void initState() {
+    super.initState();
+    futureUser = fetchUser();
+  }
+
+  Future<UserModel?> fetchUser() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    if (snapshot.exists) {
+      return UserModel.fromJson(snapshot.data()!);
+    }
+    return null;
+  }
+
+  void refreshUser() {
+    setState(() {
+      futureUser = fetchUser();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,7 +80,30 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Text('home screen'),
+      body: FutureBuilder<UserModel?>(
+        future: futureUser,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
+
+          final user = snapshot.data!;
+          return UserProfileCard(
+            user: user,
+            onEdit: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(user: user),
+                ),
+              );
+
+              if (result == true) {
+                refreshUser(); // Rebuild with updated data
+              }
+            },
+          );
+        },
+      ),
     );
   }
 }

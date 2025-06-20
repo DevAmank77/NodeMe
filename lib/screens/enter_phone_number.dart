@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/screens/otp_verification_scree.dart';
 import 'package:node_me/utils/app_color.dart';
-import 'package:node_me/widgets/auth_button.dart';
+import 'package:node_me/widgets/custom_button.dart';
 import 'package:node_me/widgets/text_field.dart';
 
 class EnterPhoneNumber extends StatefulWidget {
