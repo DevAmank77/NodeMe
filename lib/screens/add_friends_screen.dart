@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/utils/app_color.dart';
 import '../models/user_model.dart';
@@ -70,7 +69,7 @@ class _AddFriendsScreenState extends State<AddFriendsScreen> {
       }
     }
 
-    if (success) setState(() {}); // rebuild button state
+    if (success) setState(() {});
   }
 
   @override
@@ -117,7 +116,7 @@ class _AddFriendsScreenState extends State<AddFriendsScreen> {
                                       : AppColors.primary,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
                                 ),
                                 onPressed: () => toggleRequest(user),

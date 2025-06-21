@@ -35,11 +35,9 @@ class _EnterPhoneNumberState extends State<EnterPhoneNumber> {
     });
 
     await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: '+91$phone', // Change country code as needed
+      phoneNumber: '+91$phone',
       verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-retrieval or instant verification (mostly on Android)
         await FirebaseAuth.instance.signInWithCredential(credential);
-        // Navigate to home or profile setup
       },
       verificationFailed: (FirebaseAuthException e) {
         setState(() => isLoading = false);
@@ -64,9 +62,7 @@ class _EnterPhoneNumberState extends State<EnterPhoneNumber> {
           ),
         );
       },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        // Called when auto-retrieval times out
-      },
+      codeAutoRetrievalTimeout: (String verificationId) {},
     );
   }
 

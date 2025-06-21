@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/screens/enter_phone_number.dart';
-import 'package:node_me/screens/home_screen.dart';
+import 'package:node_me/screens/screens.dart';
 
 class CheckAuth extends StatelessWidget {
   const CheckAuth({super.key});
@@ -11,7 +11,7 @@ class CheckAuth extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      return const HomeScreen();
+      return const Screens();
     } else {
       return const EnterPhoneNumber();
     }

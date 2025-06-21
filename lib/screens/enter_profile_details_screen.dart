@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/screens/home_screen.dart';
 import 'package:node_me/widgets/custom_button.dart';
-import '../models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EnterProfileScreen extends StatefulWidget {

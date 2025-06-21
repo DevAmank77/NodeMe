@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:node_me/screens/add_friends_screen.dart';
 import 'package:node_me/screens/enter_phone_number.dart';
+import 'package:node_me/screens/graph_view_screen.dart';
 import 'package:node_me/utils/app_color.dart';
-import 'package:node_me/widgets/user_profile.dart';
-import '../models/user_model.dart';
-import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,7 +51,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Text('home screen'),
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(10),
+          child: FriendGraphScreen(),
+        ),
+      ),
     );
   }
 }

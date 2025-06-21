@@ -6,24 +6,44 @@ import 'package:node_me/models/user_model.dart';
 
 class FriendService {
   final db = FirebaseDatabase.instance.ref();
-  final senderUid = FirebaseAuth.instance.currentUser?.uid;
 
-  /// Accepts a friend request and links both users as 1st-degree connections
   Future<void> acceptFriendRequest({
     required String requestId,
     required String fromId,
     required String toId,
   }) async {
     final updates = <String, dynamic>{};
+    final timestamp = DateTime.now().toIso8601String();
 
-    // 1. Mark friend request as 'accepted'
     updates['friend_requests/$toId/$requestId/status'] = 'accepted';
+    updates['friend_requests/$toId/$requestId/acceptedAt'] = timestamp;
 
-    // 2. Add both users as 1st-degree friends
     updates['users/$fromId/firstDegreeIds/$toId'] = true;
     updates['users/$toId/firstDegreeIds/$fromId'] = true;
 
-    await db.update(updates);
+    try {
+      await db.update(updates);
+    } catch (e) {
+      print('Error accepting friend request: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getIncomingRequests(
+    String currentUid,
+  ) async {
+    final snapshot = await db.child('friend_requests').get();
+    final data = (snapshot.value as Map?) ?? {};
+
+    final List<Map<String, dynamic>> requests = [];
+
+    data.forEach((key, value) {
+      if (value['receiverUid'] == currentUid && value['status'] == 'pending') {
+        requests.add({...value, 'requestId': key});
+      }
+    });
+
+    return requests;
   }
 
   Future<List<UserModel>> getAllUsers() async {
@@ -39,6 +59,7 @@ class FriendService {
     String receiverUid,
     BuildContext context,
   ) async {
+    final senderUid = FirebaseAuth.instance.currentUser?.uid;
     if (senderUid == null || senderUid == receiverUid) return false;
 
     final sortedUids = [senderUid, receiverUid]..sort();
@@ -71,6 +92,8 @@ class FriendService {
     String receiverUid,
     BuildContext context,
   ) async {
+    final senderUid = FirebaseAuth.instance.currentUser?.uid;
+
     if (senderUid == null || senderUid == receiverUid) return false;
 
     final sortedUids = [senderUid, receiverUid]..sort();
@@ -92,6 +115,7 @@ class FriendService {
   }
 
   Future<Set<String>> getSentFriendRequests() async {
+    final senderUid = FirebaseAuth.instance.currentUser?.uid;
     final snapshot = await db.child('friend_requests').get();
 
     final data = (snapshot.value as Map?) ?? {};
@@ -105,5 +129,51 @@ class FriendService {
     });
 
     return sentUids;
+  }
+
+  Future<List<Map<String, dynamic>>> getHangouts(String currentUid) async {
+    final snapshot = await db.child('hangout_requests').get();
+    final data = (snapshot.value as Map?) ?? {};
+
+    final List<Map<String, dynamic>> requests = [];
+
+    data.forEach((key, value) {
+      if (value is Map &&
+          value['receiverUid'] == currentUid &&
+          value['status'] == 'pending') {
+        requests.add({
+          'requestId': key,
+          'senderUid': value['senderUid'],
+          'receiverUid': value['receiverUid'],
+          'status': value['status'],
+          'message': value['message'] ?? '',
+          'timestamp': value['timestamp'] ?? '',
+        });
+      }
+    });
+
+    return requests;
+  }
+
+  Future<void> acceptHangoutRequest({
+    required String requestId,
+    required String fromId,
+    required String toId,
+  }) async {
+    final dbRef = FirebaseDatabase.instance.ref();
+
+    // 1. Update status to 'accepted'
+    await dbRef.child('hangout_requests/$requestId').update({
+      'status': 'accepted',
+      'acceptedAt': DateTime.now().toIso8601String(),
+    });
+
+    // 2. Add to both users' hangoutMembers
+    final updates = <String, dynamic>{
+      'hangouts/$fromId/$toId': true,
+      'hangouts/$toId/$fromId': true,
+    };
+
+    await dbRef.update(updates);
   }
 }

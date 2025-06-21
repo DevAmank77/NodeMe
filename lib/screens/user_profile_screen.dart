@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:node_me/screens/add_friends_screen.dart';
-import 'package:node_me/screens/enter_phone_number.dart';
+import 'package:node_me/screens/friend_list_screen.dart';
+import 'package:node_me/screens/notification_screen.dart';
 import 'package:node_me/utils/app_color.dart';
+import 'package:node_me/widgets/custom_button.dart';
 import 'package:node_me/widgets/user_profile.dart';
 import '../models/user_model.dart';
 import 'edit_profile_screen.dart';
@@ -61,10 +63,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => EnterPhoneNumber()),
+                MaterialPageRoute(builder: (_) => FriendRequestsScreen()),
               );
             },
           ),
@@ -80,29 +81,42 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<UserModel?>(
-        future: futureUser,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData)
-            return const Center(child: CircularProgressIndicator());
+      body: Column(
+        children: [
+          FutureBuilder<UserModel?>(
+            future: futureUser,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData)
+                return const Center(child: CircularProgressIndicator());
 
-          final user = snapshot.data!;
-          return UserProfileCard(
-            user: user,
-            onEdit: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditProfileScreen(user: user),
-                ),
+              final user = snapshot.data!;
+              return UserProfileCard(
+                user: user,
+                onEdit: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(user: user),
+                    ),
+                  );
+
+                  if (result == true) {
+                    refreshUser(); // Rebuild with updated data
+                  }
+                },
               );
-
-              if (result == true) {
-                refreshUser(); // Rebuild with updated data
-              }
             },
-          );
-        },
+          ),
+          CustomSimpleRoundedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => FriendListScreen()),
+              );
+            },
+            text: "friends",
+          ),
+        ],
       ),
     );
   }
