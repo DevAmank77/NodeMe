@@ -15,7 +15,7 @@ class _ScreensState extends State<Screens> {
 
   final List<Widget> _screens = [
     HomeScreen(),
-    HangoutRequestsScreen(),
+    HangoutsScreen(),
     UserProfileScreen(),
   ];
 
