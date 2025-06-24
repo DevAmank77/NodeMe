@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:node_me/models/node_data.dart';
 import 'package:node_me/resources/firebase_graph_service.dart';
+import 'package:node_me/resources/hangout_service.dart';
 import 'package:node_me/widgets/connection_painter.dart';
 import 'package:node_me/widgets/user_popup.dart';
 
@@ -135,8 +136,13 @@ class _FriendGraphScreenState extends State<FriendGraphScreen> {
                 onLongPress: () {
                   showUserOptionsPopup(
                     context,
+                    centerUser,
                     node.name,
-                    () => showHangoutDialog(node.name),
+                    () => showUserOptionsPopup,
+                    (hangoutId) => HangoutService().requestAddMember(
+                      hangoutId: hangoutId,
+                      receiverId: node.name,
+                    ),
                   );
                 },
                 child: Column(

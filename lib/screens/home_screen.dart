@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:node_me/screens/add_friends_screen.dart';
 import 'package:node_me/screens/enter_phone_number.dart';
 import 'package:node_me/screens/graph_view_screen.dart';
+import 'package:node_me/screens/notification_screen.dart';
 import 'package:node_me/utils/app_color.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,20 +32,20 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => EnterPhoneNumber()),
+                MaterialPageRoute(builder: (_) => NotificationScreen()),
               );
             },
           ),
 
           IconButton(
-            icon: const Icon(Icons.add_box),
-            onPressed: () {
-              Navigator.push(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => AddFriendsScreen()),
+                MaterialPageRoute(builder: (_) => EnterPhoneNumber()),
               );
             },
           ),

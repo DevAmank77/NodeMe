@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:node_me/screens/enter_profile_details_screen.dart';
-import 'package:node_me/screens/home_screen.dart';
+import 'package:node_me/screens/screens.dart';
 import 'package:node_me/utils/app_color.dart';
 import 'package:node_me/widgets/custom_button.dart';
 import 'package:node_me/widgets/text_field.dart';
@@ -58,7 +58,7 @@ class _OtpVerificationScreeState extends State<OtpVerificationScree> {
           .then((doc) => doc.exists)) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => Screens()),
         );
       } else {
         Navigator.pushReplacement(

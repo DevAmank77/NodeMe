@@ -65,7 +65,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             onPressed: () async {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => FriendRequestsScreen()),
+                MaterialPageRoute(builder: (_) => NotificationScreen()),
               );
             },
           ),
