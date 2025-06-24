@@ -23,7 +23,7 @@ class UserModel {
       name: json['name'] ?? '',
       username: json['username'] ?? '',
       bio: json['bio'] ?? '',
-      profilePicUrl: json['profilePicUrl'],
+      profilePicUrl: json['profilePicUrl'] ?? '',
       friends: json['friends'] ?? 0,
       interests: List<String>.from(json['interests'] ?? []),
     );

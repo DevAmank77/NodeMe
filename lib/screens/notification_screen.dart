@@ -27,7 +27,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     _fetchCounts();
   }
 
-  void _fetchCounts() async {
+  Future<void> _fetchCounts() async {
     final friendSnapshot = await FirebaseDatabase.instance
         .ref()
         .child('friend_requests')
@@ -45,11 +45,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final hangoutSnapshot = await FirebaseFirestore.instance
         .collection('hangoutRequests')
         .where('to', isEqualTo: currentUser)
+        .where('status', isEqualTo: "pending")
         .get();
 
     final approvalSnapshot = await FirebaseFirestore.instance
-        .collection('ownerApprovalRequests')
+        .collection('ApprovalRequests')
         .where('to', isEqualTo: currentUser)
+        .where('status', isEqualTo: "pending")
         .get();
 
     setState(() {
@@ -184,8 +186,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget _buildApprovalRequests() {
     return StreamBuilder(
       stream: FirebaseFirestore.instance
-          .collection('ownerApprovalRequests')
+          .collection('ApprovalRequests')
           .where('to', isEqualTo: currentUser)
+          .where('status', isEqualTo: "pending")
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -210,8 +213,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   .doc(toBeAdded)
                   .get(),
               builder: (context, userSnapshot) {
-                if (!userSnapshot.hasData)
+                if (!userSnapshot.hasData) {
                   return const ListTile(title: Text("Loading..."));
+                }
 
                 final userData = userSnapshot.data!;
                 final name = userData['name'] ?? 'Unknown';
@@ -234,18 +238,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
                             await FirebaseFirestore.instance
-                                .collection('ownerApprovalRequests')
+                                .collection('ApprovalRequests')
                                 .doc(docId)
                                 .update({'status': 'approved'});
+                            await _fetchCounts();
+                            setState(() {});
                           },
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () async {
                             await FirebaseFirestore.instance
-                                .collection('ownerApprovalRequests')
+                                .collection('ApprovalRequests')
                                 .doc(docId)
                                 .delete();
+
+                            await _fetchCounts();
+                            setState(() {});
                           },
                         ),
                       ],
@@ -265,6 +274,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       stream: FirebaseFirestore.instance
           .collection('hangoutRequests')
           .where('to', isEqualTo: currentUser)
+          .where('status', isEqualTo: "pending")
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -293,8 +303,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   .doc(fromUid)
                   .get(),
               builder: (context, userSnapshot) {
-                if (!userSnapshot.hasData)
+                if (!userSnapshot.hasData) {
                   return const ListTile(title: Text("Loading..."));
+                }
 
                 final userData = userSnapshot.data!;
                 final name = userData['name'] ?? 'Unknown';
@@ -328,6 +339,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 .collection('hangoutRequests')
                                 .doc(docId)
                                 .delete();
+
+                            await _fetchCounts();
+                            setState(() {});
                           },
                         ),
                         IconButton(
@@ -337,6 +351,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 .collection('hangoutRequests')
                                 .doc(docId)
                                 .delete();
+
+                            await _fetchCounts();
+                            setState(() {});
                           },
                         ),
                       ],
@@ -403,8 +420,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     leading: CircleAvatar(
                       backgroundImage:
                           sender?.profilePicUrl != null &&
-                              sender!.profilePicUrl!.isNotEmpty
-                          ? NetworkImage(sender.profilePicUrl!)
+                              sender!.profilePicUrl.isNotEmpty
+                          ? NetworkImage(sender.profilePicUrl)
                           : const AssetImage('assets/default_avatar.png')
                                 as ImageProvider,
                       radius: 24,
@@ -426,6 +443,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               fromId: fromUid,
                               toId: currentUser ?? '',
                             );
+                            final requestKey = requests[index].key;
+                            await FirebaseDatabase.instance
+                                .ref('friend_requests/$requestKey')
+                                .remove();
+                            await _fetchCounts();
                             setState(() {});
                           },
                         ),
@@ -436,6 +458,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             await FirebaseDatabase.instance
                                 .ref('friend_requests/$requestKey')
                                 .remove();
+                            await _fetchCounts();
                             setState(() {});
                           },
                         ),

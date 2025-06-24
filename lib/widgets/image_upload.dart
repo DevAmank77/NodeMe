@@ -82,7 +82,7 @@ class _ImageUploadState extends State<ImageUpload> {
                 ? FileImage(_imageFile!)
                 : (profileUrl != null
                           ? NetworkImage(profileUrl)
-                          : const NetworkImage("https://i.pravatar.cc/300"))
+                          : const NetworkImage(""))
                       as ImageProvider,
             child: Align(
               alignment: Alignment.bottomRight,

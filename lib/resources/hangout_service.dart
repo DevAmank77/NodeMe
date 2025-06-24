@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -79,30 +77,18 @@ class HangoutService {
             backgroundColor: Colors.green,
           ),
         );
-        bool approved = await isApprovedByOwner(hangoutId, receiverId);
-
-        if (approved) {
-          approvedByOwner(
-            hangoutId: hangoutId,
-            hangoutName: hangoutName,
-            fromUid: user.uid,
-            toUid: receiverId,
-          );
-        }
       } else {
         final ownerId = data?['createdBy'];
 
-        await FirebaseFirestore.instance
-            .collection('ownerApprovalRequests')
-            .add({
-              "hangoutName": hangoutName,
-              'hangoutId': hangoutId,
-              'from': user.uid,
-              'toBeAdded': receiverId,
-              'to': ownerId,
-              'status': 'pending',
-              'timestamp': FieldValue.serverTimestamp(),
-            });
+        await FirebaseFirestore.instance.collection('ApprovalRequests').add({
+          "hangoutName": hangoutName,
+          'hangoutId': hangoutId,
+          'from': user.uid,
+          'toBeAdded': receiverId,
+          'to': ownerId,
+          'status': 'pending',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -111,6 +97,39 @@ class HangoutService {
             ),
             backgroundColor: Colors.orange,
           ),
+        );
+        listenForApproval(
+          hangoutId: hangoutId,
+          approverUid: ownerId,
+          onApproved: () async {
+            await FirebaseFirestore.instance.collection('hangoutRequests').add({
+              'hangoutId': hangoutId,
+              'hangoutName': hangoutName,
+              'from': user.uid,
+              'to': receiverId,
+              'status': 'pending',
+              'timestamp': FieldValue.serverTimestamp(),
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Request approved by mutual friend!"),
+              ),
+            );
+
+            final snapshot = await FirebaseFirestore.instance
+                .collection('ApprovalRequests')
+                .where('toBeAdded', isEqualTo: receiverId)
+                .where('hangoutId', isEqualTo: hangoutId)
+                .where('from', isEqualTo: ownerId)
+                .get();
+
+            for (final doc in snapshot.docs) {
+              await FirebaseFirestore.instance
+                  .collection('ApprovalRequests')
+                  .doc(doc.id)
+                  .delete();
+            }
+          },
         );
       }
     } else {
@@ -123,10 +142,52 @@ class HangoutService {
         ),
       );
 
-      List<String> mutuals = await getMutualFriends('userA', 'userB');
+      List<String> mutuals = await getMutualFriends(user.uid, receiverId);
 
-      showMutualFriendDialog(context, mutuals, (selectedUid) {
-        print('User selected: $selectedUid');
+      showMutualFriendDialog(context, mutuals, (selectedUid) async {
+        await FirebaseFirestore.instance.collection('ApprovalRequests').add({
+          "hangoutName": hangoutName,
+          'hangoutId': hangoutId,
+          'from': user.uid,
+          'toBeAdded': receiverId,
+          'to': selectedUid,
+          'status': 'pending',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        listenForApproval(
+          hangoutId: hangoutId,
+          approverUid: receiverId,
+          onApproved: () async {
+            await FirebaseFirestore.instance.collection('hangoutRequests').add({
+              'hangoutId': hangoutId,
+              'hangoutName': hangoutName,
+              'from': user.uid,
+              'to': receiverId,
+              'status': 'pending',
+              'timestamp': FieldValue.serverTimestamp(),
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Request approved by mutual friend!"),
+              ),
+            );
+
+            final snapshot = await FirebaseFirestore.instance
+                .collection('ApprovalRequests')
+                .where('toBeAdded', isEqualTo: receiverId)
+                .where('hangoutId', isEqualTo: hangoutId)
+                .where('from', isEqualTo: user.uid)
+                .get();
+
+            for (final doc in snapshot.docs) {
+              await FirebaseFirestore.instance
+                  .collection('ApprovalRequests')
+                  .doc(doc.id)
+                  .delete();
+            }
+          },
+        );
       });
     }
   }
@@ -186,40 +247,9 @@ class HangoutService {
     return mutualFriends.cast<String>();
   }
 
-  Future<void> approvedByOwner({
-    required String hangoutId,
-    required String hangoutName,
-    required String fromUid,
-    required String toUid,
-  }) async {
-    await FirebaseFirestore.instance.collection('hangoutRequests').add({
-      'hangoutId': hangoutId,
-      'hangoutName': hangoutName,
-      'from': fromUid,
-      'to': toUid,
-      'status': 'pending',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-
-    // Delete the approval request as after now processed
+  Future<bool> isApproved(String hangoutId, String receiverId) async {
     final snapshot = await FirebaseFirestore.instance
-        .collection('ownerApprovalRequests')
-        .where('toBeAdded', isEqualTo: toUid)
-        .where('hangoutId', isEqualTo: hangoutId)
-        .where('from', isEqualTo: fromUid)
-        .get();
-
-    for (final doc in snapshot.docs) {
-      await FirebaseFirestore.instance
-          .collection('ownerApprovalRequests')
-          .doc(doc.id)
-          .delete();
-    }
-  }
-
-  Future<bool> isApprovedByOwner(String hangoutId, String receiverId) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('ownerApprovalRequests')
+        .collection('ApprovalRequests')
         .where('hangoutId', isEqualTo: hangoutId)
         .where('toBeAdded', isEqualTo: receiverId)
         .where('status', isEqualTo: 'approved')
@@ -227,5 +257,27 @@ class HangoutService {
         .get();
 
     return snapshot.docs.isNotEmpty;
+  }
+
+  void listenForApproval({
+    required String hangoutId,
+    required String approverUid,
+    required VoidCallback onApproved,
+  }) {
+    FirebaseFirestore.instance
+        .collection('ApprovalRequests')
+        .where('hangoutId', isEqualTo: hangoutId)
+        .where('to', isEqualTo: approverUid)
+        .snapshots()
+        .listen((querySnapshot) {
+          for (var doc in querySnapshot.docs) {
+            final data = doc.data();
+            if (data['status'] == 'approved') {
+              onApproved();
+
+              break;
+            }
+          }
+        });
   }
 }

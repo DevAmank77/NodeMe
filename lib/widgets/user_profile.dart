@@ -22,7 +22,6 @@ class UserProfileCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            /// Profile Photo + Name + Button
             Row(
               children: [
                 CircleAvatar(
@@ -71,9 +70,6 @@ class UserProfileCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            /// Bio
-
-            /// Friend Count
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
