@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:node_me/screens/home_screen.dart';
+import 'package:node_me/screens/screens.dart';
 import 'package:node_me/widgets/custom_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:node_me/widgets/image_upload.dart';
 
 class EnterProfileScreen extends StatefulWidget {
   const EnterProfileScreen({super.key});
@@ -18,7 +19,7 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
   final TextEditingController interestController = TextEditingController();
-
+  String? updatedProfilePicUrl;
   bool isLoading = false;
 
   void saveProfile() async {
@@ -36,7 +37,7 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
           'uid': user.uid,
           'name': nameController.text,
           'username': usernameController.text,
-
+          "profilePicUrl": updatedProfilePicUrl,
           'interests': interestController.text
               .split(',')
               .map((e) => e.trim())
@@ -52,7 +53,7 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(builder: (context) => Screens()),
     );
   }
 
@@ -67,10 +68,12 @@ class _EnterProfileScreenState extends State<EnterProfileScreen> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              CircleAvatar(
-                radius: 50,
-
-                child: const Icon(Icons.person, size: 50),
+              ImageUpload(
+                onImageUploaded: (url) {
+                  setState(() {
+                    updatedProfilePicUrl = url;
+                  });
+                },
               ),
               const SizedBox(height: 12),
 

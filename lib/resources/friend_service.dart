@@ -8,12 +8,13 @@ class FriendService {
   final db = FirebaseDatabase.instance.ref();
 
   Future<void> acceptFriendRequest({
-    required String requestId,
     required String fromId,
     required String toId,
   }) async {
     final updates = <String, dynamic>{};
     final timestamp = DateTime.now().toIso8601String();
+    final sortedUids = [fromId, toId]..sort();
+    final requestId = '${sortedUids[0]}_${sortedUids[1]}';
 
     updates['friend_requests/$toId/$requestId/status'] = 'accepted';
     updates['friend_requests/$toId/$requestId/acceptedAt'] = timestamp;
@@ -24,7 +25,6 @@ class FriendService {
     try {
       await db.update(updates);
     } catch (e) {
-      print('Error accepting friend request: $e');
       rethrow;
     }
   }
@@ -129,51 +129,5 @@ class FriendService {
     });
 
     return sentUids;
-  }
-
-  Future<List<Map<String, dynamic>>> getHangouts(String currentUid) async {
-    final snapshot = await db.child('hangout_requests').get();
-    final data = (snapshot.value as Map?) ?? {};
-
-    final List<Map<String, dynamic>> requests = [];
-
-    data.forEach((key, value) {
-      if (value is Map &&
-          value['receiverUid'] == currentUid &&
-          value['status'] == 'pending') {
-        requests.add({
-          'requestId': key,
-          'senderUid': value['senderUid'],
-          'receiverUid': value['receiverUid'],
-          'status': value['status'],
-          'message': value['message'] ?? '',
-          'timestamp': value['timestamp'] ?? '',
-        });
-      }
-    });
-
-    return requests;
-  }
-
-  Future<void> acceptHangoutRequest({
-    required String requestId,
-    required String fromId,
-    required String toId,
-  }) async {
-    final dbRef = FirebaseDatabase.instance.ref();
-
-    // 1. Update status to 'accepted'
-    await dbRef.child('hangout_requests/$requestId').update({
-      'status': 'accepted',
-      'acceptedAt': DateTime.now().toIso8601String(),
-    });
-
-    // 2. Add to both users' hangoutMembers
-    final updates = <String, dynamic>{
-      'hangouts/$fromId/$toId': true,
-      'hangouts/$toId/$fromId': true,
-    };
-
-    await dbRef.update(updates);
   }
 }

@@ -29,7 +29,6 @@ void showUserOptionsPopup(
             title: const Text('View Profile'),
             onTap: () {
               Navigator.pop(context);
-              // Add your navigation logic here
             },
           ),
           if (hasHangouts)
@@ -91,11 +90,11 @@ void _showExistingHangoutSelector(
               title: Text(hangout['name'] ?? 'Unnamed Hangout'),
               onTap: () async {
                 final receiverId =
-                    ModalRoute.of(context)!.settings.arguments
-                        as String?; // or pass it via parameter
+                    ModalRoute.of(context)!.settings.arguments as String?;
 
                 if (receiverId != null) {
                   await HangoutService().requestAddMember(
+                    context: context,
                     hangoutId: hangoutId,
                     receiverId: receiverId,
                   );

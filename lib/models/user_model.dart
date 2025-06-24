@@ -1,5 +1,3 @@
-// lib/models/user_model.dart
-
 class UserModel {
   final String uid;
   final String name;
@@ -25,7 +23,7 @@ class UserModel {
       name: json['name'] ?? '',
       username: json['username'] ?? '',
       bio: json['bio'] ?? '',
-      profilePicUrl: json['profilePicUrl'] ?? '',
+      profilePicUrl: json['profilePicUrl'],
       friends: json['friends'] ?? 0,
       interests: List<String>.from(json['interests'] ?? []),
     );

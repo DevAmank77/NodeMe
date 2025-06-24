@@ -86,8 +86,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           FutureBuilder<UserModel?>(
             future: futureUser,
             builder: (context, snapshot) {
-              if (!snapshot.hasData)
+              if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
+              }
 
               final user = snapshot.data!;
               return UserProfileCard(
@@ -101,7 +102,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   );
 
                   if (result == true) {
-                    refreshUser(); // Rebuild with updated data
+                    refreshUser();
                   }
                 },
               );

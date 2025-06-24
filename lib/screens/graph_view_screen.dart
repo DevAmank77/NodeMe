@@ -140,6 +140,7 @@ class _FriendGraphScreenState extends State<FriendGraphScreen> {
                     node.name,
                     () => showUserOptionsPopup,
                     (hangoutId) => HangoutService().requestAddMember(
+                      context: context,
                       hangoutId: hangoutId,
                       receiverId: node.name,
                     ),

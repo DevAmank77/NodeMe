@@ -20,6 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController usernameController;
   late TextEditingController interestController;
   late TextEditingController bioController;
+  String? updatedProfilePicUrl;
 
   @override
   void initState() {
@@ -39,9 +40,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       uid: widget.user.uid,
       name: nameController.text.trim(),
       username: usernameController.text.trim(),
-
       bio: bioController.text.trim(),
-      profilePicUrl: widget.user.profilePicUrl,
+      profilePicUrl: updatedProfilePicUrl ?? widget.user.profilePicUrl,
       friends: widget.user.friends,
       interests: interestController.text
           .split(',')
@@ -72,7 +72,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              Center(child: ImageUpload()),
+              Center(
+                child: ImageUpload(
+                  onImageUploaded: (url) {
+                    setState(() {
+                      updatedProfilePicUrl = url;
+                    });
+                  },
+                ),
+              ),
               const SizedBox(height: 24),
 
               TextFormField(
